@@ -69,7 +69,7 @@ def run(cluster):
     total_memory_limit = 0
     total_memory_request = 0
     for pod in filtered_pods:
-      if pod.status.phase != 'Running':
+      if pod.status.phase in ['Succeeded', 'Failed', 'Unknown']:
         continue
       print(f"\t\tName: {pod.metadata.name}")
       cpu_usage = 0
