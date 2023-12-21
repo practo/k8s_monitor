@@ -3,7 +3,9 @@ from kubernetes import client, config
 from datetime import datetime
 import argparse
 import csv
+import re
 
+allowed_pattern = re.compile(r'^(default|kube-node-lease|kube-public|kube-system)$')
 
 def convert_memory_to_ki(input_mem):
   if is_numeric(input_mem):
@@ -70,6 +72,9 @@ def run(cluster):
     total_memory_request = 0
     for pod in filtered_pods:
       if pod.status.phase in ['Succeeded', 'Failed', 'Unknown']:
+        continue
+      if allowed_pattern.match(pod.metadata.name):
+        print(f"Skipping pod: '{pod.metadata.name}'")
         continue
       print(f"\t\tName: {pod.metadata.name}")
       cpu_usage = 0
