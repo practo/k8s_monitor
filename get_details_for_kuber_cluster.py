@@ -158,8 +158,8 @@ def run(cluster):
 
     remaining_cpu_request = allocated_cpu - total_cpu_request
     remaining_cpu_limit = allocated_cpu - total_cpu_limit
-    remaining_memory_limit = int(allocated_memory[:-2]) - total_memory_limit
-    remaining_memory_request = int(allocated_memory[:-2]) - total_memory_request
+    remaining_memory_limit = float(allocated_memory[:-2]) - total_memory_limit
+    remaining_memory_request = float(allocated_memory[:-2]) - total_memory_request
 
     data_to_be_dumped = [values_for_view['node_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, str(remaining_cpu_request) + 'm', str(remaining_memory_request) + 'Ki', str(remaining_cpu_limit) + 'm', str(remaining_memory_limit) + 'Ki', None, None, None, None, None, None]
     data.append(data_to_be_dumped)
@@ -170,7 +170,7 @@ def run(cluster):
     print(f"\tPod with no Memory Request: {', '.join(pods_with_no_memory_request)}")
 
     print(f'\n\t\tRequest\tLimit')
-    print(f'\tMemory\t{round(remaining_memory_request/int(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/int(allocated_memory[:-2])*100)}')
+    print(f'\tMemory\t{round(remaining_memory_request/float(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/float(allocated_memory[:-2])*100)}')
     print(f'\tCPU\t{round(remaining_cpu_request/allocated_cpu*100)}\t{round(remaining_cpu_limit/allocated_cpu*100)}')
 
 
