@@ -3,23 +3,25 @@ from kubernetes import client, config
 from datetime import datetime
 import argparse
 import csv
+import re
 
+allowed_pattern = re.compile(r'^(default|kube-node-lease|kube-public|kube-system)$')
 
 def convert_memory_to_ki(input_mem):
   if is_numeric(input_mem):
-    return int(int(input_mem)/1024)
+    return float(float(input_mem)/1024)
   if input_mem[-2:] == 'Mi':
-    return 1024*int(input_mem[:-2])
+    return 1024*float(input_mem[:-2])
   elif input_mem[-2:] == 'Ki':
-    return int(input_mem[:-2])
+    return float(input_mem[:-2])
   elif input_mem[-2:] == 'Gi':
-    return 1024*1024*int(input_mem[:-2])
+    return 1024*1024*float(input_mem[:-2])
 
 def convert_cpu_to_millicore(input_cpu):
   if is_numeric(input_cpu): # If only int/float, then it is in full core units
     return float(input_cpu)*1000
   else:
-    return int(input_cpu[:-1])
+    return float(input_cpu[:-1])
 
 def is_numeric(s):
   try:
@@ -37,7 +39,7 @@ def run(cluster):
   pods = core_api.list_pod_for_all_namespaces(watch=False)
   nodes = core_api.list_node(pretty=True)
 
-  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'Remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
+  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
   data = []
   data.append(csv_headers)
   values_for_view = {
@@ -57,7 +59,7 @@ def run(cluster):
     node_status = node.status.phase
     print(f"\tNode-Name: {node.metadata.name}")
     print(f"\tNode-Status: {node.status.phase}")
-    allocated_cpu = int(node.status.allocatable["cpu"]) * 1000
+    allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
     allocated_memory = node.status.allocatable["memory"]
     print(f"\tAllocated CPU: {allocated_cpu}")
     print(f"\tAllocated Memory: {allocated_memory}")
@@ -69,6 +71,11 @@ def run(cluster):
     total_memory_limit = 0
     total_memory_request = 0
     for pod in filtered_pods:
+      if pod.status.phase in ['Succeeded', 'Failed', 'Unknown']:
+        continue
+      if allowed_pattern.match(pod.metadata.name):
+        print(f"Skipping pod: '{pod.metadata.name}'")
+        continue
       print(f"\t\tName: {pod.metadata.name}")
       cpu_usage = 0
       memory_usage = 0
@@ -138,7 +145,7 @@ def run(cluster):
           request_cpu_to_dump = str(request_cpu) + 'm'
 
         # print(request_cpu)
-        data_to_be_dumped = [values_for_view['container_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, None, None, None, None, pod.metadata.name, count_of_container, limit_cpu_to_dump, request_cpu_to_dump, limit_memory_to_dump, request_memory_to_dump]
+        data_to_be_dumped = [values_for_view['container_view'], node.metadata.name, None, None, None, None, None, None, pod.metadata.name, count_of_container, limit_cpu_to_dump, request_cpu_to_dump, limit_memory_to_dump, request_memory_to_dump]
         data.append(data_to_be_dumped)
         count_of_container = count_of_container + 1
       data_to_be_dumped = [values_for_view['pod_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, None, None, None, None, pod.metadata.name, None, str(total_cpu_limit_for_pod) + 'm', str(total_cpu_request_for_pod) + 'm', str(total_memory_limit_for_pod) + 'Ki', str(total_memory_request_for_pod) + 'Ki']
@@ -151,8 +158,8 @@ def run(cluster):
 
     remaining_cpu_request = allocated_cpu - total_cpu_request
     remaining_cpu_limit = allocated_cpu - total_cpu_limit
-    remaining_memory_limit = int(allocated_memory[:-2]) - total_memory_limit
-    remaining_memory_request = int(allocated_memory[:-2]) - total_memory_request
+    remaining_memory_limit = float(allocated_memory[:-2]) - total_memory_limit
+    remaining_memory_request = float(allocated_memory[:-2]) - total_memory_request
 
     data_to_be_dumped = [values_for_view['node_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, str(remaining_cpu_request) + 'm', str(remaining_memory_request) + 'Ki', str(remaining_cpu_limit) + 'm', str(remaining_memory_limit) + 'Ki', None, None, None, None, None, None]
     data.append(data_to_be_dumped)
@@ -163,7 +170,7 @@ def run(cluster):
     print(f"\tPod with no Memory Request: {', '.join(pods_with_no_memory_request)}")
 
     print(f'\n\t\tRequest\tLimit')
-    print(f'\tMemory\t{round(remaining_memory_request/int(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/int(allocated_memory[:-2])*100)}')
+    print(f'\tMemory\t{round(remaining_memory_request/float(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/float(allocated_memory[:-2])*100)}')
     print(f'\tCPU\t{round(remaining_cpu_request/allocated_cpu*100)}\t{round(remaining_cpu_limit/allocated_cpu*100)}')
 
 
