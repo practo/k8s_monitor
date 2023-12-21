@@ -1,0 +1,16 @@
+view,node_name,allocated_cpu,allocated_memory,remaining_cpu_request,remaining_memory_request,remaining_cpu_limit,Rremaining_memory_limit,pod_name,container_number,limit_cpu,request_cpu,limit_memory,request_memory
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,coredns-5dd5756b68-8s798,1,0.0m,100.0m,174080.0Ki,71680.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,coredns-5dd5756b68-8s798,,0.0m,100.0m,174080.0Ki,71680.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,etcd-minikube,1,0.0m,100.0m,0.0Ki,102400.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,etcd-minikube,,0.0m,100.0m,0.0Ki,102400.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-apiserver-minikube,1,0.0m,250.0m,0.0Ki,0.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-apiserver-minikube,,0.0m,250.0m,0.0Ki,0.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-controller-manager-minikube,1,0.0m,200.0m,0.0Ki,0.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-controller-manager-minikube,,0.0m,200.0m,0.0Ki,0.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-proxy-jwtsl,1,0.0m,0.0m,0.0Ki,0.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-proxy-jwtsl,,0.0m,0.0m,0.0Ki,0.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-scheduler-minikube,1,0.0m,100.0m,0.0Ki,0.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,kube-scheduler-minikube,,0.0m,100.0m,0.0Ki,0.0Ki
+CONTAINER_VIEW,minikube,2000.0m,3914660Ki,,,,,storage-provisioner,1,0.0m,0.0m,0.0Ki,0.0Ki
+POD_VIEW,minikube,2000.0m,3914660Ki,,,,,storage-provisioner,,0.0m,0.0m,0.0Ki,0.0Ki
+NODE_VIEW,minikube,2000.0m,3914660Ki,1250.0m,3740580.0Ki,2000.0m,3740580.0Ki,,,,,,

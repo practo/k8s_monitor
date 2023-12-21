@@ -37,7 +37,7 @@ def run(cluster):
   pods = core_api.list_pod_for_all_namespaces(watch=False)
   nodes = core_api.list_node(pretty=True)
 
-  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'Remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
+  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
   data = []
   data.append(csv_headers)
   values_for_view = {
@@ -140,7 +140,7 @@ def run(cluster):
           request_cpu_to_dump = str(request_cpu) + 'm'
 
         # print(request_cpu)
-        data_to_be_dumped = [values_for_view['container_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, None, None, None, None, pod.metadata.name, count_of_container, limit_cpu_to_dump, request_cpu_to_dump, limit_memory_to_dump, request_memory_to_dump]
+        data_to_be_dumped = [values_for_view['container_view'], node.metadata.name, None, None, None, None, None, None, pod.metadata.name, count_of_container, limit_cpu_to_dump, request_cpu_to_dump, limit_memory_to_dump, request_memory_to_dump]
         data.append(data_to_be_dumped)
         count_of_container = count_of_container + 1
       data_to_be_dumped = [values_for_view['pod_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, None, None, None, None, pod.metadata.name, None, str(total_cpu_limit_for_pod) + 'm', str(total_cpu_request_for_pod) + 'm', str(total_memory_limit_for_pod) + 'Ki', str(total_memory_request_for_pod) + 'Ki']
