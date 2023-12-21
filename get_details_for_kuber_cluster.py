@@ -7,19 +7,19 @@ import csv
 
 def convert_memory_to_ki(input_mem):
   if is_numeric(input_mem):
-    return int(int(input_mem)/1024)
+    return float(float(input_mem)/1024)
   if input_mem[-2:] == 'Mi':
-    return 1024*int(input_mem[:-2])
+    return 1024*float(input_mem[:-2])
   elif input_mem[-2:] == 'Ki':
-    return int(input_mem[:-2])
+    return float(input_mem[:-2])
   elif input_mem[-2:] == 'Gi':
-    return 1024*1024*int(input_mem[:-2])
+    return 1024*1024*float(input_mem[:-2])
 
 def convert_cpu_to_millicore(input_cpu):
   if is_numeric(input_cpu): # If only int/float, then it is in full core units
     return float(input_cpu)*1000
   else:
-    return int(input_cpu[:-1])
+    return float(input_cpu[:-1])
 
 def is_numeric(s):
   try:
@@ -57,7 +57,7 @@ def run(cluster):
     node_status = node.status.phase
     print(f"\tNode-Name: {node.metadata.name}")
     print(f"\tNode-Status: {node.status.phase}")
-    allocated_cpu = int(node.status.allocatable["cpu"]) * 1000
+    allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
     allocated_memory = node.status.allocatable["memory"]
     print(f"\tAllocated CPU: {allocated_cpu}")
     print(f"\tAllocated Memory: {allocated_memory}")
@@ -69,6 +69,8 @@ def run(cluster):
     total_memory_limit = 0
     total_memory_request = 0
     for pod in filtered_pods:
+      if pod.status.phase != 'Running':
+        continue
       print(f"\t\tName: {pod.metadata.name}")
       cpu_usage = 0
       memory_usage = 0
