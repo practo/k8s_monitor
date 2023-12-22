@@ -187,7 +187,7 @@ def run(cluster, annotation_name, annotation_value):
   print(f'\nData has been written to {csv_file_path}')
 
 def is_node_eligible(node, annoration_name, annotation_value):
-    annotations = node.metadata.annotations
+    annotations = node.metadata.labels
     print('-------------------')
     print(annotations)
     print('-------------------')
