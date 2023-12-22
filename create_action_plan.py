@@ -16,7 +16,6 @@ total_remaining_node_request_memory = 0
 total_remaining_node_limit_cpu = 0
 total_remaining_node_limit_memory = 0
 k8s_descending_data = []
-csv_header = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory', 'remaining_cpu_request_percentage', 'remaining_memory_request_percentage', 'remaining_cpu_limit_percentage', 'remaining_memory_limit_percentage']
 
 for index, row in data.iterrows():
     if row['view'] == 'NODE_VIEW':
@@ -38,12 +37,8 @@ sorted_k8s_data = sorted(k8s_descending_data, key=lambda x: (
     -x['remaining_cpu_limit_percentage'],
     -x['remaining_memory_limit_percentage']
 ))
-# k8s_descending_data.insert(0, csv_header)
+
 print("\nSorted:", sorted_k8s_data)
-
-# print("\nSorted:", sorted_k8s_data)
-csv_file_path = 'k8s_descending.csv'
-
 
 csv_file_path = 'k8s_descending.csv'
 
