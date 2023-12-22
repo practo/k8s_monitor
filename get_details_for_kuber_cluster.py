@@ -188,7 +188,10 @@ def run(cluster, annotation_name, annotation_value):
 
 def is_node_eligible(node, annoration_name, annotation_value):
     annotations = node.metadata.annotations
-    print("{annoration_name} Annotation Value: ", annotations.get(annoration_name))
+    print('-------------------')
+    print(annotations)
+    print('-------------------')
+    print(f"{annoration_name} Annotation Value: {annotations.get(annoration_name)}")
     return (annotations.get(annoration_name) == annotation_value)
 
 def parse_arguments():
