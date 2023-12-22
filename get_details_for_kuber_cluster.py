@@ -59,7 +59,7 @@ def run(cluster, annotation_name, annotation_value):
     node_status = node.status.phase
     print(f"\tNode-Name: {node.metadata.name}")
     print(f"\tNode-Status: {node.status.phase}")
-    if annotation_name != 'IGNORE' and not verify_node_annotations(node, annotation_name, annotation_value):
+    if annotation_name != 'IGNORE' and not is_node_eligible(node, annotation_name, annotation_value):
       print(f"\tSkipping node: {node_name} as annotation check did not pass")
       continue
     allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
@@ -186,12 +186,10 @@ def run(cluster, annotation_name, annotation_value):
 
   print(f'\nData has been written to {csv_file_path}')
 
-def verify_node_annotations(node, annoration_name, annotation_value):
+def is_node_eligible(node, annoration_name, annotation_value):
     annotations = node.metadata.annotations
-    if annotations.get(annoration_name) == annotation_value:
-      return True
-    else:
-      return False
+    print("{annoration_name} Annotation Value: ", annotations.get(annoration_name))
+    return (annotations.get(annoration_name) == annotation_value)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
