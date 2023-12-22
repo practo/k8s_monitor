@@ -28,28 +28,8 @@ def run(cluster, node):
 def drain_node(api_client, node_name):
     # Set the node unschedulable
     api_client.patch_node(node_name, {"spec": {"unschedulable": True}})
-
-    # eviction = V1beta1Eviction(
-    #     delete_options=client.V1DeleteOptions(grace_period_seconds=0),
-    # )
-    # api_client.create_node_proxy_eviction(node_name, body=eviction)
-
-    # Delete the node
+    # Evict all pods from the node
     api_client.delete_node(node_name)
-
-# def drain_node(api_client, node_name):
-#     # Set the node unschedulable
-#     api_client.patch_node(node_name, {"spec": {"unschedulable": True}})
-
-#     # Get all pods on the node
-#     pods = api_client.list_pod_for_all_namespaces(field_selector=f'spec.nodeName={node_name}')
-
-#     # Evict all pods from the node
-#     for pod in pods.items:
-#         api_client.delete_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
-
-#     # Delete the node
-#     api_client.delete_node(node_name)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
