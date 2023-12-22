@@ -188,7 +188,7 @@ def run(cluster, annotation_name, annotation_value):
 
 def verify_node_annotations(node, annoration_name, annotation_value):
     annotations = node.metadata.annotations
-    if annotations[annoration_name] == annotation_value:
+    if annotations.get(annoration_name) == annotation_value:
       return True
     else:
       return False
