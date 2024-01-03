@@ -30,7 +30,7 @@ def is_numeric(s):
   except ValueError:
     return False
 
-def run(cluster):
+def run(cluster, label_name, label_value):
   # Configure the Kubernetes client
   config.load_kube_config(context=cluster)
   core_api = client.CoreV1Api()
@@ -39,7 +39,7 @@ def run(cluster):
   pods = core_api.list_pod_for_all_namespaces(watch=False)
   nodes = core_api.list_node(pretty=True)
 
-  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
+  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'remaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
   data = []
   data.append(csv_headers)
   values_for_view = {
@@ -59,6 +59,9 @@ def run(cluster):
     node_status = node.status.phase
     print(f"\tNode-Name: {node.metadata.name}")
     print(f"\tNode-Status: {node.status.phase}")
+    if label_name != 'IGNORE' and not is_node_eligible(node, label_name, label_value):
+      print(f"\tSkipping node: {node_name} as label check did not pass")
+      continue
     allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
     allocated_memory = node.status.allocatable["memory"]
     print(f"\tAllocated CPU: {allocated_cpu}")
@@ -183,16 +186,20 @@ def run(cluster):
 
   print(f'\nData has been written to {csv_file_path}')
 
-
-
+def is_node_eligible(node, label_name, label_value):
+    labels = node.metadata.labels
+    print(f"{label_name} Label Value: {labels.get(label_name)}")
+    return (labels.get(label_name) == label_value)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
   parser.add_argument('-c', '--kubecontext', help='Specify the Kubernetes Cluster', required=True)
+  parser.add_argument('-l', '--label_name', help='Specify the label name to add to the node', required=True)
+  parser.add_argument('-v', '--label_value', help='Specify the label value to add to the node', required=True)
   args = parser.parse_args()
-  return args.kubecontext
+  return args.kubecontext, args.label_name, args.label_value
 
 if __name__ == "__main__":
-  cluster = parse_arguments()
-  run(cluster)
+  cluster, label_name, label_value = parse_arguments()
+  run(cluster, label_name, label_value)
 
