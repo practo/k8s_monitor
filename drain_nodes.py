@@ -70,6 +70,7 @@ def drain_node(api_client, node_name, grace_period = -1, ignore_daemonsets = Fal
          namespace=pod.metadata.namespace,
          body=delete_options
       )
+    api_client.delete_node(node_name)
 
 
 ######################################################################################################################################
