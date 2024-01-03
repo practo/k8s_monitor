@@ -2,6 +2,8 @@ from kubernetes import client, config
 import pandas as pd
 from datetime import datetime
 import argparse
+import time
+from kubernetes.client import V1DeleteOptions
 # from kubernetes.client.models import V1beta1Eviction
 
 def run(cluster, node):
@@ -25,11 +27,52 @@ def run(cluster, node):
         print(f"Draining Node-Name: {node_name}")
         drain_node(api_client, node_name)
 
-def drain_node(api_client, node_name):
+
+######################################################################################################################################
+
+
+
+def drain_node(api_client, node_name, grace_period = -1, ignore_daemonsets = False):
     # Set the node unschedulable
     api_client.patch_node(node_name, {"spec": {"unschedulable": True}})
     # Evict all pods from the node
-    api_client.delete_node(node_name)
+    # api_client.delete_node(node_name)
+    # pods = api_client.list_pod_for_all_namespaces(field_selector=f'spec.nodeName={node_name}')
+
+    # Evict pods gracefully, respecting PodDisruptionBudgets
+    # eviction = client.V1beta1Eviction(metadata={"name": node_name})
+    # if grace_period > 0:
+    #     eviction.delete_options = client.V1DeleteOptions(grace_period_seconds=grace_period)
+    # if ignore_daemonsets:
+    #     eviction.delete_options.propagation_policy = 'Background'  # Evict DaemonSet-managed pods
+
+    # api = client.AppsV1Api()
+    # while True:
+    #     try:
+    #         api.create_namespaced_pod_eviction(node_name, eviction)
+    #         break
+    #     except client.exceptions.ApiException as e:
+    #         if e.status == 429:  # Too many requests, retry with exponential backoff
+    #             time.sleep(2**retry_count)
+    #             retry_count += 1
+    #         else:
+    #             raise
+
+    # print(f"Node {node_name} drained successfully.")
+
+    pods = api_client.list_pod_for_all_namespaces(field_selector=f'spec.nodeName={node_name}')
+
+    # Delete all pods from the node
+    for pod in pods.items:
+      delete_options = V1DeleteOptions(grace_period_seconds=0)
+      api_client.delete_namespaced_pod(
+         name=pod.metadata.name,
+         namespace=pod.metadata.namespace,
+         body=delete_options
+      )
+
+
+######################################################################################################################################
 
 def parse_arguments():
   parser = argparse.ArgumentParser()

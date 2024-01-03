@@ -30,7 +30,7 @@ def is_numeric(s):
   except ValueError:
     return False
 
-def run(cluster, annotation_name, annotation_value):
+def run(cluster, label_name, label_value):
   # Configure the Kubernetes client
   config.load_kube_config(context=cluster)
   core_api = client.CoreV1Api()
@@ -59,8 +59,8 @@ def run(cluster, annotation_name, annotation_value):
     node_status = node.status.phase
     print(f"\tNode-Name: {node.metadata.name}")
     print(f"\tNode-Status: {node.status.phase}")
-    if annotation_name != 'IGNORE' and not is_node_eligible(node, annotation_name, annotation_value):
-      print(f"\tSkipping node: {node_name} as annotation check did not pass")
+    if label_name != 'IGNORE' and not is_node_eligible(node, label_name, label_value):
+      print(f"\tSkipping node: {node_name} as label check did not pass")
       continue
     allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
     allocated_memory = node.status.allocatable["memory"]
@@ -186,23 +186,20 @@ def run(cluster, annotation_name, annotation_value):
 
   print(f'\nData has been written to {csv_file_path}')
 
-def is_node_eligible(node, annoration_name, annotation_value):
-    annotations = node.metadata.labels
-    print('-------------------')
-    print(annotations)
-    print('-------------------')
-    print(f"{annoration_name} Annotation Value: {annotations.get(annoration_name)}")
-    return (annotations.get(annoration_name) == annotation_value)
+def is_node_eligible(node, label_name, label_value):
+    labels = node.metadata.labels
+    print(f"{label_name} Label Value: {labels.get(label_name)}")
+    return (labels.get(label_name) == label_value)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
   parser.add_argument('-c', '--kubecontext', help='Specify the Kubernetes Cluster', required=True)
-  parser.add_argument('-a', '--annotation_name', help='Specify the annotation name to add to the node', required=True)
-  parser.add_argument('-v', '--annotation_value', help='Specify the annotation value to add to the node', required=True)
+  parser.add_argument('-l', '--label_name', help='Specify the label name to add to the node', required=True)
+  parser.add_argument('-v', '--label_value', help='Specify the label value to add to the node', required=True)
   args = parser.parse_args()
-  return args.kubecontext, args.annotation_name, args.annotation_value
+  return args.kubecontext, args.label_name, args.label_value
 
 if __name__ == "__main__":
-  cluster, annotation_name, annotation_value = parse_arguments()
-  run(cluster, annotation_name, annotation_value)
+  cluster, label_name, label_value = parse_arguments()
+  run(cluster, label_name, label_value)
 
