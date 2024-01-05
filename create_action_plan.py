@@ -5,6 +5,7 @@ from get_details_for_kuber_cluster import convert_memory_to_ki, convert_cpu_to_m
 import pandas as pd
 from datetime import datetime
 import logging
+import argparse
 
 def create_action_plan(k8s_view_file, timestamp):
     # Read the CSV file into a pandas DataFrame
@@ -53,7 +54,16 @@ def create_action_plan(k8s_view_file, timestamp):
     logging.debug(f"Total remaining node limit cpu: {total_remaining_node_limit_cpu}")
     logging.debug(f"Total remaining node limit memory: {total_remaining_node_limit_memory}")
 
+    return sorted_k8s_data[0]['node_name'], csv_file_path
+
+def parse_arguments():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-c', '--file_name', help='Specify the k8s_output file name', required=True)
+  args = parser.parse_args()
+  return args.file_name
+
 if __name__ == "__main__":
+    file_name = parse_arguments()
     now = datetime.now()
     timestamp = now.strftime("%d_%m_%Y_%H_%M_%S")
-    create_action_plan()
+    create_action_plan(file_name, timestamp)

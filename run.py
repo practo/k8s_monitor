@@ -43,9 +43,9 @@ if __name__ == "__main__":
     file_name = create_k8s_view(cluster, label_name, label_value, timestamp)
     logging.info(f"Kubernetes view created successfully and written to {file_name}")
     logging.info(f"Creating action plan for {cluster}")
-    node_name = create_action_plan(file_name, timestamp)
+    node_name, action_plan_path = create_action_plan(file_name, timestamp)
     logging.info(f"Identified {node_name} to be drained")
     if dry_run == 'False':
-        drain_node(cluster, node_name)
+        drain_node(cluster, node_name, action_plan_path)
     else:
         logging.info(f"DRY RUN: To drain {node_name} run: python drain_nodes.py -c {cluster} -n {node_name}")
