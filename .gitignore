@@ -160,5 +160,6 @@ cython_debug/
 #.idea/
 
 # Skipping outputs
-k8s_output.csv
-k8s_descending.csv
+k8s_output*
+k8s_action_plan*
+k8s_descending*
