@@ -55,7 +55,7 @@ def parse_arguments():
   parser.add_argument('--log', help='Set the log level', default='INFO')
 
   args = parser.parse_args()
-  return args.kubecontext, args.node, args.file_path, args.force_delete
+  return args.kubecontext, args.node, args.file_path, args.force_delete, args.log
 
 if __name__ == "__main__":
   cluster, node, file_path, force_delete, log_level = parse_arguments()
