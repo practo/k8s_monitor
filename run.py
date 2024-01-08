@@ -48,4 +48,4 @@ if __name__ == "__main__":
     if dry_run == 'False':
         drain_node(cluster, node_name, action_plan_path, 'False')
     else:
-        logging.info(f"DRY RUN: To drain {node_name} run: python drain_nodes.py -c {cluster} -n {node_name}")
+        logging.info(f"DRY RUN: To drain {node_name} run: python drain_nodes.py -c {cluster} -n {node_name} -f {action_plan_path}")
