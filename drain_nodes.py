@@ -52,10 +52,15 @@ def parse_arguments():
   parser.add_argument('-n', '--node', help='Specify the node name from the output file to drain', required=True)
   parser.add_argument('-f', '--file_path', help='Specify the file_path of the action plan creaated', required=True)
   parser.add_argument('-F', '--force_delete', help='Force drain the node', default='False')
+  parser.add_argument('--log', help='Set the log level', default='INFO')
 
   args = parser.parse_args()
   return args.kubecontext, args.node, args.file_path, args.force_delete
 
 if __name__ == "__main__":
-  cluster, node, file_path, force_delete = parse_arguments()
+  cluster, node, file_path, force_delete, log_level = parse_arguments()
+  numeric_level = getattr(logging, log_level.upper(), None)
+  if not isinstance(numeric_level, int):
+    raise ValueError(f'Invalid log level: {log_level}')
+  logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - %(message)s')
   drain_node(cluster, node, file_path, force_delete)
