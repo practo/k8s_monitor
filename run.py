@@ -17,7 +17,7 @@ def parse_arguments():
     parser.add_argument('-l', '--label_name', help='Specify the label name to add to the node', required=True)
     parser.add_argument('-v', '--label_value', help='Specify the label value to add to the node', required=True)
     parser.add_argument('--log', help='Set the log level', default='INFO')
-    parser.add_argument('--dry_run', '--dry_run', help='Dry run', default='False')
+    parser.add_argument('--dry_run', '--dry_run', help='Dry run', default='True')
     args = parser.parse_args()
     return args.kubecontext, args.label_name, args.label_value, args.log, args.dry_run
 
