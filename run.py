@@ -45,7 +45,4 @@ if __name__ == "__main__":
     logging.info(f"Creating action plan for {cluster}")
     node_name, action_plan_path = create_action_plan(file_name, timestamp)
     logging.info(f"Identified {node_name} to be drained")
-    if dry_run == 'False':
-        drain_node(cluster, node_name, action_plan_path, 'False')
-    else:
-        logging.info(f"DRY RUN: To drain {node_name} run: python drain_nodes.py -c {cluster} -n {node_name} -f {action_plan_path}")
+    drain_node(cluster, node_name, action_plan_path, 'False', dry_run)

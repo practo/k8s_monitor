@@ -6,7 +6,7 @@ import time
 from kubernetes.client import V1DeleteOptions
 import logging
 
-def drain_node(cluster, node, action_plan_file_path, force_delete):
+def drain_node(cluster, node, action_plan_file_path, force_delete, dry_run):
   # Load the Kubernetes configuration
   config.load_kube_config(context=cluster)
 
@@ -25,9 +25,12 @@ def drain_node(cluster, node, action_plan_file_path, force_delete):
   else:
     remaining_cpu_request_percentage = selected_row['remaining_cpu_request_percentage'].values[0]
     if remaining_cpu_request_percentage > 20 or force_delete == 'True':
-      logging.info(f"Draining Node-Name: {node}")
-      drain_and_delete_node(api_client, node)
-      logging.info(f"Node {node} drained successfully.")
+      if dry_run == 'True':
+        logging.info(f"DRY RUN: To drain {node} run: python drain_nodes.py -c {cluster} -n {node} -f {action_plan_file_path}")
+      else:
+        logging.info(f"Draining Node-Name: {node}")
+        drain_and_delete_node(api_client, node)
+        logging.info(f"Node {node} drained successfully.")
     else:
       logging.info(f"Node-Name: {node} cannot be drained as remaining_cpu_request_percentage is {remaining_cpu_request_percentage}.")
 
