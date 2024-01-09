@@ -163,3 +163,4 @@ cython_debug/
 k8s_output*
 k8s_action_plan*
 k8s_descending*
+logs/*
