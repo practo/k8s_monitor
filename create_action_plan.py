@@ -11,6 +11,11 @@ def create_action_plan(k8s_view_file, timestamp):
     # Read the CSV file into a pandas DataFrame
     data = pd.read_csv(k8s_view_file)
 
+    # Check if the DataFrame is empty
+    if data.empty:
+        logging.debug("No data found in the file. Exiting...")
+        return None, None
+
     total_node_allocated_cpu = 0
     total_node_allocated_memory = 0
     total_remaining_node_request_cpu = 0

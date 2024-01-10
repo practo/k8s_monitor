@@ -58,9 +58,6 @@ def drain_and_delete_node(api_client, node_name, grace_period = -1, ignore_daemo
     nodes = api_client.list_node(pretty=True)
     logging.info(f"Total number of nodes immediately after draining: {len(nodes.items)}")
     logging.info(f"Sleeping for 5mins")
-    time.sleep(300)
-    nodes = api_client.list_node(pretty=True)
-    logging.info(f"Total number of nodes 5mins after draining: {len(nodes.items)}")
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
