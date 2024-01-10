@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime
 import logging
 import argparse
+import os
 
 def create_action_plan(k8s_view_file, timestamp):
     # Read the CSV file into a pandas DataFrame
@@ -47,7 +48,8 @@ def create_action_plan(k8s_view_file, timestamp):
 
     logging.debug("\nSorted:", sorted_k8s_data)
 
-    csv_file_path = f'k8s_action_plan_{timestamp}.csv'
+    output_folder = 'action_plan'
+    csv_file_path = os.path.join(output_folder, f'k8s_action_plan_{timestamp}.csv')
 
     df = pd.DataFrame(sorted_k8s_data)
     df.to_csv(csv_file_path, index=False)

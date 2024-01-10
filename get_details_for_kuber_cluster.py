@@ -5,6 +5,7 @@ import argparse
 import csv
 import re
 import logging
+import os
 
 allowed_pattern = re.compile(r'^(default|kube-node-lease|kube-public|kube-system)$')
 
@@ -180,7 +181,8 @@ def create_k8s_view(cluster, label_name, label_value, timestamp):
 
   logging.debug("\nTotal nodes:", len(nodes.items))
 
-  csv_file_path = f'k8s_output_{timestamp}.csv'
+  output_folder = 'k8s_output'
+  csv_file_path = os.path.join(output_folder, f'k8s_output_{timestamp}.csv')
 
   with open(csv_file_path, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
