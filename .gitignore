@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 # Skipping outputs
-k8s_output*
-k8s_action_plan*
+k8s_output/*
+action_plan/*
 k8s_descending*
 logs/*
