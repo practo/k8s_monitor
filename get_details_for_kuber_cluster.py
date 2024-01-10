@@ -182,6 +182,9 @@ def create_k8s_view(cluster, label_name, label_value, timestamp):
   logging.debug("\nTotal nodes:", len(nodes.items))
 
   output_folder = 'k8s_output'
+
+  if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
   csv_file_path = os.path.join(output_folder, f'k8s_output_{timestamp}.csv')
 
   with open(csv_file_path, 'w', newline='') as csvfile:

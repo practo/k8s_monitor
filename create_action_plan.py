@@ -49,6 +49,8 @@ def create_action_plan(k8s_view_file, timestamp):
     logging.debug("\nSorted:", sorted_k8s_data)
 
     output_folder = 'action_plan'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
     csv_file_path = os.path.join(output_folder, f'k8s_action_plan_{timestamp}.csv')
 
     df = pd.DataFrame(sorted_k8s_data)
