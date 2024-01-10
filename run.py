@@ -46,4 +46,5 @@ if __name__ == "__main__":
     node_name, action_plan_path = create_action_plan(file_name, timestamp)
     if node_name is None:
         logging.info("No node found to drain. Exiting...")
-    drain_node(cluster, node_name, action_plan_path, 'False', dry_run)
+    else:
+        drain_node(cluster, node_name, action_plan_path, 'False', dry_run)
