@@ -6,6 +6,7 @@ import time
 from kubernetes.client import V1DeleteOptions
 import logging
 from get_details_for_kuber_cluster import convert_memory_to_ki, convert_cpu_to_millicore
+from print_number_of_nodes import print_number_of_nodes
 
 def drain_node(cluster, node, action_plan_file_path, force_delete, dry_run):
   # Load the Kubernetes configuration
@@ -34,15 +35,14 @@ def drain_node(cluster, node, action_plan_file_path, force_delete, dry_run):
           logging.info(f"DRY RUN: To drain {node} run: python drain_nodes.py -c {cluster} -n {node} -f {action_plan_file_path}")
         else:
           logging.info(f"Draining Node-Name: {node}")
-          drain_and_delete_node(api_client, node)
+          drain_and_delete_node(api_client, node, cluster)
           logging.info(f"Node {node} drained successfully.")
     else:
       logging.info(f"Node-Name: {node} cannot be drained as remaining_cpu_request_percentage is {remaining_cpu_request_percentage}.")
 
-def drain_and_delete_node(api_client, node_name, grace_period = -1, ignore_daemonsets = False):
+def drain_and_delete_node(api_client, node_name, cluster, grace_period = -1, ignore_daemonsets = False):
+    print_number_of_nodes(cluster)
     # Set the node unschedulable
-    nodes = api_client.list_node(pretty=True)
-    logging.info(f"Total number of nodes before draining: {len(nodes.items)}")
     api_client.patch_node(node_name, {"spec": {"unschedulable": True}})
     pods = api_client.list_pod_for_all_namespaces(field_selector=f'spec.nodeName={node_name}')
 
@@ -55,9 +55,7 @@ def drain_and_delete_node(api_client, node_name, grace_period = -1, ignore_daemo
          body=delete_options
       )
     api_client.delete_node(node_name)
-    nodes = api_client.list_node(pretty=True)
-    logging.info(f"Total number of nodes immediately after draining: {len(nodes.items)}")
-    logging.info(f"Sleeping for 5mins")
+    print_number_of_nodes(cluster)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
