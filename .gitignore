@@ -159,5 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Skipping output
-k8s_output.csv
+# Skipping outputs
+k8s_output/*
+action_plan/*
+k8s_descending*
+logs/*

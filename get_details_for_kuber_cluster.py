@@ -4,6 +4,8 @@ from datetime import datetime
 import argparse
 import csv
 import re
+import logging
+import os
 
 allowed_pattern = re.compile(r'^(default|kube-node-lease|kube-public|kube-system)$')
 
@@ -30,7 +32,7 @@ def is_numeric(s):
   except ValueError:
     return False
 
-def run(cluster):
+def create_k8s_view(cluster, label_name, label_value, timestamp):
   # Configure the Kubernetes client
   config.load_kube_config(context=cluster)
   core_api = client.CoreV1Api()
@@ -39,7 +41,7 @@ def run(cluster):
   pods = core_api.list_pod_for_all_namespaces(watch=False)
   nodes = core_api.list_node(pretty=True)
 
-  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'Rremaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
+  csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'remaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
   data = []
   data.append(csv_headers)
   values_for_view = {
@@ -49,7 +51,7 @@ def run(cluster):
   }
 
   # Print information about each node
-  print("Nodes in minikube cluster:")
+  logging.debug("Nodes in minikube cluster:")
   pods_with_no_cpu_limit = []
   pods_with_no_cpu_request = []
   pods_with_no_memory_limit = []
@@ -57,15 +59,18 @@ def run(cluster):
   for node in nodes.items:
     node_name = node.metadata.name
     node_status = node.status.phase
-    print(f"\tNode-Name: {node.metadata.name}")
-    print(f"\tNode-Status: {node.status.phase}")
+    logging.debug(f"\tNode-Name: {node.metadata.name}")
+    logging.debug(f"\tNode-Status: {node.status.phase}")
+    if label_name != 'IGNORE' and not is_node_eligible(node, label_name, label_value):
+      logging.debug(f"\tSkipping node: {node_name} as label check did not pass")
+      continue
     allocated_cpu = float(node.status.allocatable["cpu"]) * 1000
     allocated_memory = node.status.allocatable["memory"]
-    print(f"\tAllocated CPU: {allocated_cpu}")
-    print(f"\tAllocated Memory: {allocated_memory}")
+    logging.debug(f"\tAllocated CPU: {allocated_cpu}")
+    logging.debug(f"\tAllocated Memory: {allocated_memory}")
     target_node_name = node.metadata.name
     filtered_pods = [pod for pod in pods.items if pod.spec.node_name == target_node_name]
-    print("\n\tPods in node:")
+    logging.debug("\n\tPods in node:")
     total_cpu_limit = 0
     total_cpu_request = 0
     total_memory_limit = 0
@@ -74,9 +79,9 @@ def run(cluster):
       if pod.status.phase in ['Succeeded', 'Failed', 'Unknown']:
         continue
       if allowed_pattern.match(pod.metadata.name):
-        print(f"Skipping pod: '{pod.metadata.name}'")
+        logging.debug(f"Skipping pod: '{pod.metadata.name}'")
         continue
-      print(f"\t\tName: {pod.metadata.name}")
+      logging.debug(f"\t\tName: {pod.metadata.name}")
       cpu_usage = 0
       memory_usage = 0
       # if pod.status.container_statuses:
@@ -89,9 +94,9 @@ def run(cluster):
       for individual_container in containers:
         limits = individual_container.resources.limits
         requests = individual_container.resources.requests
-        print(f"\t\t\tContainer Number: {count_of_container}")
-        print(f"\t\t\t\tLimits: {limits}")
-        print(f"\t\t\t\tRequests: {requests}")
+        logging.debug(f"\t\t\tContainer Number: {count_of_container}")
+        logging.debug(f"\t\t\t\tLimits: {limits}")
+        logging.debug(f"\t\t\t\tRequests: {requests}")
         limit_cpu = None
         request_cpu = None
         limit_memory = None
@@ -111,7 +116,7 @@ def run(cluster):
           total_memory_limit_for_pod = total_memory_limit_for_pod + limit_memory
           limit_memory_to_dump = str(limit_memory) + 'Ki'
 
-        # print(limit_memory)
+        # logging.debug(limit_memory)
         if limits and 'cpu' in limits:
           limit_cpu = limits['cpu']
         else:
@@ -122,7 +127,7 @@ def run(cluster):
           total_cpu_limit_for_pod = total_cpu_limit_for_pod + limit_cpu
           limit_cpu_to_dump = str(limit_cpu) + 'm'
 
-        # print(limit_cpu)
+        # logging.debug(limit_cpu)
         if requests and 'memory' in requests:
           request_memory = requests['memory']
         else:
@@ -133,7 +138,7 @@ def run(cluster):
           total_memory_request_for_pod = total_memory_request_for_pod + request_memory
           request_memory_to_dump = str(request_memory) + 'Ki'
 
-        # print(request_memory)
+        # logging.debug(request_memory)
         if requests and 'cpu' in requests:
           request_cpu = requests['cpu']
         else:
@@ -144,7 +149,7 @@ def run(cluster):
           total_cpu_request_for_pod = total_cpu_request_for_pod + request_cpu
           request_cpu_to_dump = str(request_cpu) + 'm'
 
-        # print(request_cpu)
+        # logging.debug(request_cpu)
         data_to_be_dumped = [values_for_view['container_view'], node.metadata.name, None, None, None, None, None, None, pod.metadata.name, count_of_container, limit_cpu_to_dump, request_cpu_to_dump, limit_memory_to_dump, request_memory_to_dump]
         data.append(data_to_be_dumped)
         count_of_container = count_of_container + 1
@@ -164,35 +169,47 @@ def run(cluster):
     data_to_be_dumped = [values_for_view['node_view'], node.metadata.name, str(allocated_cpu) + 'm', allocated_memory, str(remaining_cpu_request) + 'm', str(remaining_memory_request) + 'Ki', str(remaining_cpu_limit) + 'm', str(remaining_memory_limit) + 'Ki', None, None, None, None, None, None]
     data.append(data_to_be_dumped)
 
-    print(f"\n\tPod with no CPU Limit: {', '.join(pods_with_no_cpu_limit)}")
-    print(f"\tPod with no CPU Request: {', '.join(pods_with_no_cpu_request)}")
-    print(f"\tPod with no Memory Limit: {', '.join(pods_with_no_memory_limit)}")
-    print(f"\tPod with no Memory Request: {', '.join(pods_with_no_memory_request)}")
+    logging.debug(f"\n\tPod with no CPU Limit: {', '.join(pods_with_no_cpu_limit)}")
+    logging.debug(f"\tPod with no CPU Request: {', '.join(pods_with_no_cpu_request)}")
+    logging.debug(f"\tPod with no Memory Limit: {', '.join(pods_with_no_memory_limit)}")
+    logging.debug(f"\tPod with no Memory Request: {', '.join(pods_with_no_memory_request)}")
 
-    print(f'\n\t\tRequest\tLimit')
-    print(f'\tMemory\t{round(remaining_memory_request/float(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/float(allocated_memory[:-2])*100)}')
-    print(f'\tCPU\t{round(remaining_cpu_request/allocated_cpu*100)}\t{round(remaining_cpu_limit/allocated_cpu*100)}')
+    logging.debug(f'\n\t\tRequest\tLimit')
+    logging.debug(f'\tMemory\t{round(remaining_memory_request/float(allocated_memory[:-2])*100)}\t{round(remaining_memory_limit/float(allocated_memory[:-2])*100)}')
+    logging.debug(f'\tCPU\t{round(remaining_cpu_request/allocated_cpu*100)}\t{round(remaining_cpu_limit/allocated_cpu*100)}')
 
 
-  print("\nTotal nodes:", len(nodes.items))
-  csv_file_path = 'k8s_output.csv'
+  logging.debug("\nTotal nodes:", len(nodes.items))
+
+  output_folder = 'k8s_output'
+
+  if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+  csv_file_path = os.path.join(output_folder, f'k8s_output_{timestamp}.csv')
 
   with open(csv_file_path, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
     csv_writer.writerows(data)
 
-  print(f'\nData has been written to {csv_file_path}')
+  logging.debug(f'\nData has been written to {csv_file_path}')
+  return csv_file_path
 
-
-
+def is_node_eligible(node, label_name, label_value):
+    labels = node.metadata.labels
+    logging.debug(f"{label_name} Label Value: {labels.get(label_name)}")
+    return (labels.get(label_name) == label_value)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
   parser.add_argument('-c', '--kubecontext', help='Specify the Kubernetes Cluster', required=True)
+  parser.add_argument('-l', '--label_name', help='Specify the label name to add to the node', required=True)
+  parser.add_argument('-v', '--label_value', help='Specify the label value to add to the node', required=True)
   args = parser.parse_args()
-  return args.kubecontext
+  return args.kubecontext, args.label_name, args.label_value
 
 if __name__ == "__main__":
-  cluster = parse_arguments()
-  run(cluster)
+  cluster, label_name, label_value = parse_arguments()
+  now = datetime.now()
+  timestamp = now.strftime("%d_%m_%Y_%H_%M_%S")
+  create_k8s_view(cluster, label_name, label_value)
 
