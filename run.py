@@ -1,9 +1,12 @@
+import time
 from get_details_for_kuber_cluster import create_k8s_view
 from create_action_plan import create_action_plan
 from drain_nodes import drain_node
 import argparse
 import logging
 from datetime import datetime
+import subprocess
+import sys
 
 def parse_arguments():
     """
@@ -41,10 +44,17 @@ if __name__ == "__main__":
     # Call function to create Kubernetes view
     logging.info(f"Creating Kubernetes view for {cluster}")
     file_name = create_k8s_view(cluster, label_name, label_value, timestamp)
+    if file_name is None:
+        logging.info("No node found to drain. Exiting...")
+        sys.exit(0)
     logging.info(f"Kubernetes view created successfully and written to {file_name}")
     logging.info(f"Creating action plan for {cluster}")
     node_name, action_plan_path = create_action_plan(file_name, timestamp)
+    status = False
     if node_name is None:
         logging.info("No node found to drain. Exiting...")
     else:
-        drain_node(cluster, node_name, action_plan_path, 'False', dry_run)
+        status = drain_node(cluster, node_name, action_plan_path, 'False', dry_run)
+    if status and dry_run == 'False':
+        time.sleep(60)  # Sleep for 60 seconds
+        subprocess.run(["python3", "run.py", "-c", cluster, "-l", label_name, "-v", label_value, "--log", log_level, "--dry_run", dry_run])

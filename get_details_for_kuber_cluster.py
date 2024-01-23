@@ -39,6 +39,8 @@ def create_k8s_view(cluster, label_name, label_value, timestamp):
 
   # Get all nodes
   pods = core_api.list_pod_for_all_namespaces(watch=False)
+  if pods is None:
+    return None
   nodes = core_api.list_node(pretty=True)
 
   csv_headers = ['view', 'node_name', 'allocated_cpu', 'allocated_memory', 'remaining_cpu_request', 'remaining_memory_request', 'remaining_cpu_limit', 'remaining_memory_limit', 'pod_name', 'container_number', 'limit_cpu', 'request_cpu', 'limit_memory', 'request_memory']
