@@ -24,6 +24,7 @@ def drain_node(cluster, node, action_plan_file_path, force_delete, dry_run):
   # Check if the selected row is empty
   if selected_row.empty:
     logging.error(f"No node with name '{node}' found in the CSV file.")
+    return False
   else:
     remaining_cpu_request_percentage = selected_row['remaining_cpu_request_percentage'].values[0]
     if remaining_cpu_request_percentage > 20 or force_delete == 'True':

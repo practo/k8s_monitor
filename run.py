@@ -50,6 +50,7 @@ if __name__ == "__main__":
     logging.info(f"Kubernetes view created successfully and written to {file_name}")
     logging.info(f"Creating action plan for {cluster}")
     node_name, action_plan_path = create_action_plan(file_name, timestamp)
+    status = False
     if node_name is None:
         logging.info("No node found to drain. Exiting...")
     else:
