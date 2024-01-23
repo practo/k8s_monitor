@@ -29,16 +29,20 @@ def drain_node(cluster, node, action_plan_file_path, force_delete, dry_run):
     if remaining_cpu_request_percentage > 20 or force_delete == 'True':
       if not can_pods_be_rescheduled(cluster, node, action_plan_file_path):
         logging.info(f"Pods in the node: {node} identified to be deleted cannot be accomodated in any other node. Exiting.")
+        return False
       else:
         logging.info(f"Identified {node} to be drained")
         if dry_run == 'True':
           logging.info(f"DRY RUN: To drain {node} run: python drain_nodes.py -c {cluster} -n {node} -f {action_plan_file_path}")
+          return False
         else:
           logging.info(f"Draining Node-Name: {node}")
           drain_and_delete_node(api_client, node, cluster)
           logging.info(f"Node {node} drained successfully.")
+          return True
     else:
       logging.info(f"Node-Name: {node} cannot be drained as remaining_cpu_request_percentage is {remaining_cpu_request_percentage}.")
+      return False
 
 def drain_and_delete_node(api_client, node_name, cluster, grace_period = -1, ignore_daemonsets = False):
     print_number_of_nodes(cluster)
